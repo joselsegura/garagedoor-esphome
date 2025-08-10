@@ -1,0 +1,144 @@
+esphome:
+  name: garagedoor-rpi2
+
+host:
+
+switch:
+  - platform: template
+    id: gate_close_switch
+    turn_on_action:
+      - script.execute:
+          id: raspi_gpio_exec
+          pin: 2
+          value: 0
+    turn_off_action:
+      - script.execute:
+          id: raspi_gpio_exec
+          pin: 2
+          value: 1
+
+  - platform: template
+    id: gate_open_switch
+    turn_on_action:
+      - script.execute:
+          id: raspi_gpio_exec
+          pin: 3
+          value: 0
+    turn_off_action:
+      - script.execute:
+          id: raspi_gpio_exec
+          pin: 3
+          value: 1
+  
+  - platform: template
+    id: gate_lock_open_switch
+    turn_on_action:
+      - script.execute:
+          id: raspi_gpio_exec
+          pin: 4
+          value: 0
+    
+    turn_off_action:
+      - script.execute:
+          id: raspi_gpio_exec
+          pin: 4
+          value: 1
+  
+  - platform: template
+    id: internal_door_click
+    turn_on_action:
+      - script.execute:
+          id: raspi_gpio_exec
+          pin: 10
+          value: 0
+    
+    turn_off_action:
+      - script.execute:
+          id: raspi_gpio_exec
+          pin: 10
+          value: 1
+
+script:
+  - id: raspi_gpio_exec
+    parameters:
+      pin: int
+      value: boolean
+    then:
+      - lambda: |-
+          pid_t id = fork();
+
+          if (id == 0) { // I'm the child
+            std::string pin_str = std::to_string(pin);
+            std::string value_str = value == 1? std::string("dh"): std::string("dl");
+            execl("/usr/bin/raspi-gpio", "/usr/bin/raspi-gpio", "set", pin_str.c_str(), value_str.c_str(), NULL);
+
+            // Something bad happened
+            printf("Error: %d", errno);            
+            exit(0);
+          }
+
+  - id: test_exec
+    parameters:
+      pin: int
+      value: boolean
+    then:
+      - lambda: |-
+          pid_t id = fork();
+
+          if (id == 0) { // I'm the child
+            std::string pin_str = std::to_string(pin);
+            std::string value_str = value == 1? std::string("dh"): std::string("dl");
+            execl("/usr/bin/raspi-gpio-mock", "/usr/bin/raspi-gpio-mock", "set", pin_str.c_str(), value_str.c_str(), NULL);
+
+            // Something bad happened
+            printf("Error: %d", errno);            
+            exit(0);
+          }
+
+
+cover:
+  - platform: time_based
+    id: garage_door
+    device_class: gate
+    name: Garage door
+    open_action: 
+      - switch.turn_on: gate_lock_open_switch
+      - delay: 1s
+      - switch.turn_on: gate_open_switch
+      - switch.turn_off: gate_lock_open_switch
+    open_duration: 18s
+
+    close_action: 
+      - switch.turn_on: gate_close_switch
+    close_duration: 23s
+
+    stop_action:
+      - switch.turn_off: gate_close_switch
+      - switch.turn_off: gate_open_switch
+      - switch.turn_off: gate_lock_open_switch
+
+  - platform: time_based
+    id: internal_garage_door
+    device_class: garage
+    name: Internal garage door
+    open_action: 
+      - switch.turn_on: internal_door_click
+      - delay: 3s
+      - switch.turn_off: internal_door_click
+    open_duration: 30s
+
+    close_action: 
+      - switch.turn_on: internal_door_click
+      - delay: 3s
+      - switch.turn_off: internal_door_click
+    close_duration: 30s
+
+    stop_action:
+      - switch.turn_off: internal_door_click
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: ""
