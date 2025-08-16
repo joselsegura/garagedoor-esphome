@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import logging
 import subprocess
 import time
-import logging
 from datetime import datetime
+
 
 # GPIO pins to monitor
 PINS = [2, 3, 4, 10]
@@ -11,13 +12,15 @@ PINS = [2, 3, 4, 10]
 # Log file path
 LOG_FILE = "/home/doorpi/gpio_monitor.log"
 
+
 class MillisecondFormatter(logging.Formatter):
     """Custom formatter to include milliseconds in timestamp"""
-    
+
     def formatTime(self, record, datefmt=None):
         """Override formatTime to include milliseconds"""
         ct = datetime.fromtimestamp(record.created)
-        return ct.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]  # Remove last 3 digits to get milliseconds
+        return ct.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Remove last 3 digits to get milliseconds
+
 
 def setup_logger():
     logger = logging.getLogger("GPIO_Monitor")
@@ -38,16 +41,13 @@ def setup_logger():
 
     return logger
 
+
 def read_gpio(pin):
-    """
-    Uses 'raspi-gpio get <pin>' to read the pin status.
+    """Uses 'raspi-gpio get <pin>' to read the pin status.
     Returns 0 or 1 depending on the detected logic level.
     """
     try:
-        output = subprocess.check_output(
-            ["raspi-gpio", "get", str(pin)],
-            text=True
-        )
+        output = subprocess.check_output(["raspi-gpio", "get", str(pin)], text=True)
         # Example output: "GPIO 2: level=1 fsel=1 func=OUTPUT pull=DOWN"
         if "level=1" in output:
             return 1
@@ -57,6 +57,7 @@ def read_gpio(pin):
             return None
     except subprocess.CalledProcessError:
         return None
+
 
 def main():
     logger = setup_logger()
@@ -88,6 +89,7 @@ def main():
 
     except KeyboardInterrupt:
         logger.info("===== GPIO MONITORING STOPPED =====")
+
 
 if __name__ == "__main__":
     main()

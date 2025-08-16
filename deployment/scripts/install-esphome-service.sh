@@ -50,19 +50,19 @@ check_root() {
 
 check_system_requirements() {
     print_step "Checking system requirements..."
-    
+
     # Check if systemd is available
     if ! command -v systemctl &> /dev/null; then
         print_error "systemctl not found. This system doesn't appear to use systemd."
         exit 1
     fi
-    
+
     print_info "✓ systemd is available"
 }
 
 create_user_if_needed() {
     print_step "Checking service user..."
-    
+
     if ! id "$SERVICE_USER" &>/dev/null; then
         print_info "Creating service user: $SERVICE_USER"
         useradd -r -m -s /bin/bash "$SERVICE_USER"
@@ -75,12 +75,12 @@ create_user_if_needed() {
 
 setup_directories() {
     print_step "Setting up directories..."
-    
+
     # Create project directory
     mkdir -p "$PROJECT_DIR"
     chown "$SERVICE_USER:$SERVICE_GROUP" "$PROJECT_DIR"
     print_info "✓ Project directory: $PROJECT_DIR"
-    
+
     # Create logs directory
     mkdir -p "/var/log/esphome"
     chown "$SERVICE_USER:$SERVICE_GROUP" "/var/log/esphome"
@@ -89,7 +89,7 @@ setup_directories() {
 
 install_service_file() {
     print_step "Installing systemd service file..."
-    
+
     # Create the service file
     cat > "/etc/systemd/system/${SERVICE_NAME}.service" << EOF
 [Unit]
@@ -132,11 +132,11 @@ EOF
 
 configure_service() {
     print_step "Configuring systemd service..."
-    
+
     # Reload systemd
     systemctl daemon-reload
     print_info "✓ systemd daemon reloaded"
-    
+
     # Enable service
     systemctl enable "$SERVICE_NAME"
     print_info "✓ Service enabled for automatic startup"
@@ -223,7 +223,7 @@ main() {
     print_info "  YAML file: $YAML_FILE"
     print_info "  Service name: $SERVICE_NAME"
     echo ""
-    
+
     check_root
     check_system_requirements
     create_user_if_needed

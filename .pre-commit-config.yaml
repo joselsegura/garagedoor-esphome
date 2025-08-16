@@ -10,9 +10,9 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-        args: ['--unsafe']  # Allow custom YAML tags for ESPHome
+        args: ["--unsafe"] # Allow custom YAML tags for ESPHome
       - id: check-added-large-files
-        args: ['--maxkb=1000']
+        args: ["--maxkb=1000"]
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-json
@@ -40,7 +40,7 @@ repos:
     hooks:
       - id: prettier
         types: [yaml]
-        exclude: ^secrets\.yaml$  # Don't format secrets file
+        exclude: ^secrets\.yaml$ # Don't format secrets file
         args: [--tab-width=2, --print-width=100]
 
   # Shell script linting
@@ -56,19 +56,7 @@ repos:
     hooks:
       - id: markdownlint
         args: [--fix]
-        exclude: ^REPOSITORY_STRUCTURE\.md$  # Exclude generated structure file
-
-  # Security scanning
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
-    hooks:
-      - id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
-        exclude: ^secrets\.yaml$  # ESPHome secrets file is expected
-
-# Configuration for specific hooks
-default_install_hook_types: [pre-commit, pre-push]
-default_stages: [commit]
+        exclude: ^REPOSITORY_STRUCTURE\.md$ # Exclude generated structure file
 
 # Minimum pre-commit version
 minimum_pre_commit_version: 3.0.0

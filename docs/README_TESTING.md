@@ -21,6 +21,7 @@ This directory contains a comprehensive test suite for testing your ESPHome gara
 ### 2. Setup
 
 1. **Install dependencies:**
+
 ```bash
 pip install requests
 ```
@@ -33,6 +34,7 @@ pip install requests
    - Copy the token (you won't see it again!)
 
 3. **Prepare the test script:**
+
 ```bash
 chmod +x ha_test_runner.py
 ```
@@ -40,16 +42,19 @@ chmod +x ha_test_runner.py
 ### 3. Basic Usage
 
 **Run all tests:**
+
 ```bash
 python3 ha_test_runner.py --url http://YOUR_HA_IP:8123 --token YOUR_TOKEN
 ```
 
 **Run only state verification tests (safe):**
+
 ```bash
 python3 ha_test_runner.py --url http://YOUR_HA_IP:8123 --token YOUR_TOKEN --states-only
 ```
 
 **Run quick test suite:**
+
 ```bash
 python3 ha_test_runner.py --url http://YOUR_HA_IP:8123 --token YOUR_TOKEN --quick
 ```
@@ -57,7 +62,7 @@ python3 ha_test_runner.py --url http://YOUR_HA_IP:8123 --token YOUR_TOKEN --quic
 ### 4. Test Options
 
 - `--covers-only` - Test only cover entities (garage doors)
-- `--switches-only` - Test only switch entities  
+- `--switches-only` - Test only switch entities
 - `--states-only` - Test only state reading (no device movement)
 - `--quick` - Run minimal test suite
 - `--timeout 30` - Set request timeout (default: 10 seconds)
@@ -86,35 +91,44 @@ python3 ha_test_runner.py --url http://YOUR_HA_IP:8123 --token YOUR_TOKEN --quic
 ## Understanding Test Results
 
 ### Success Indicators
+
 - ✅ Test passed with HTTP 200 response
 - Response time under 1 second (typically)
 - Physical device responds as expected
 
-### Failure Indicators  
+### Failure Indicators
+
 - ❌ Test failed with error HTTP status
 - Timeout or network errors
 - Unexpected device behavior
 
 ### Log Files
+
 - `ha_test_results.log` - Detailed test execution log
 - `ha_test_detailed_results.json` - Complete test results in JSON format
 
 ## Test Categories
 
 ### 1. State Verification Tests (Safe)
+
 These tests only read entity states and don't cause device movement:
+
 ```bash
 python3 ha_test_runner.py --url http://YOUR_HA_IP:8123 --token YOUR_TOKEN --states-only
 ```
 
-### 2. Switch Control Tests  
+### 2. Switch Control Tests
+
 Test individual switch entities:
+
 ```bash
 python3 ha_test_runner.py --url http://YOUR_HA_IP:8123 --token YOUR_TOKEN --switches-only
 ```
 
 ### 3. Cover Control Tests (Physical Movement)
+
 Test garage door operations (⚠️ causes actual movement):
+
 ```bash
 python3 ha_test_runner.py --url http://YOUR_HA_IP:8123 --token YOUR_TOKEN --covers-only
 ```
@@ -146,16 +160,19 @@ python3 ha_test_runner.py --url http://YOUR_HA_IP:8123 --token YOUR_TOKEN --cove
 ### Debugging Steps
 
 1. **Test connectivity:**
+
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" http://YOUR_HA_IP:8123/api/
 ```
 
 2. **List all entities:**
+
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" http://YOUR_HA_IP:8123/api/states | grep garage
 ```
 
 3. **Check specific entity:**
+
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" http://YOUR_HA_IP:8123/api/states/cover.garage_door
 ```
@@ -164,7 +181,8 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://YOUR_HA_IP:8123/api/states/cov
 
 If you prefer manual testing, use the test plan in `homeassistant_test_plan.md`. Each test case includes the exact curl commands to run.
 
-### Example Manual Test:
+### Example Manual Test
+
 ```bash
 # Test getting garage door state
 curl -X GET \
@@ -183,11 +201,13 @@ curl -X POST \
 ## Integration with CI/CD
 
 The test script returns appropriate exit codes for automation:
+
 - `0` - All tests passed
-- `1` - Some tests failed  
+- `1` - Some tests failed
 - `2` - Test execution error or interrupted
 
 Example usage in scripts:
+
 ```bash
 #!/bin/bash
 python3 ha_test_runner.py --url $HA_URL --token $HA_TOKEN --quick
@@ -211,8 +231,9 @@ To modify or extend the tests:
 ## Support
 
 For issues with:
+
 - **ESPHome configuration:** Check ESPHome documentation
-- **Home Assistant setup:** Check Home Assistant documentation  
+- **Home Assistant setup:** Check Home Assistant documentation
 - **Test script bugs:** Review test logs and modify script as needed
 
 ## Entity Reference
@@ -220,14 +241,15 @@ For issues with:
 Based on your ESPHome configuration:
 
 ### Cover Entities
+
 - `cover.garage_door` - Main garage gate (18s open, 23s close)
 - `cover.internal_garage_door` - Internal door (15s open/close)
 
 ### Switch Entities
+
 - `switch.gate_close_switch` - GPIO pin 2
-- `switch.gate_open_switch` - GPIO pin 3  
+- `switch.gate_open_switch` - GPIO pin 3
 - `switch.gate_lock_open_switch` - GPIO pin 4
 - `switch.internal_door_click` - GPIO pin 10
 
 All switches use inverted logic (on = GPIO low, off = GPIO high).
-

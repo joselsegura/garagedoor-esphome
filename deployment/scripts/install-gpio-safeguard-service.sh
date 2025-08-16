@@ -50,33 +50,33 @@ check_root() {
 
 check_system_requirements() {
     print_step "Checking system requirements..."
-    
+
     # Check if systemd is available
     if ! command -v systemctl &> /dev/null; then
         print_error "systemctl not found. This system doesn't appear to use systemd."
         exit 1
     fi
-    
+
     # Check if Python3 is available
     if ! command -v python3 &> /dev/null; then
         print_error "python3 not found. Please install Python 3."
         exit 1
     fi
-    
+
     print_info "✓ systemd is available"
     print_info "✓ Python3 is available"
 }
 
 check_gpio_access() {
     print_step "Checking GPIO access..."
-    
+
     # Check if GPIO devices exist
     if [[ -e /dev/gpiomem ]] || [[ -d /sys/class/gpio ]]; then
         print_info "✓ GPIO devices found"
     else
         print_warning "GPIO devices not found. Service may not work without proper GPIO access."
     fi
-    
+
     # Check if raspi-gpio is available
     if command -v raspi-gpio &> /dev/null; then
         print_info "✓ raspi-gpio command available"
@@ -87,7 +87,7 @@ check_gpio_access() {
 
 create_user_if_needed() {
     print_step "Checking service user..."
-    
+
     if ! id "$SERVICE_USER" &>/dev/null; then
         print_info "Creating service user: $SERVICE_USER"
         useradd -r -m -s /bin/bash "$SERVICE_USER"
@@ -102,12 +102,12 @@ create_user_if_needed() {
 
 setup_directories() {
     print_step "Setting up directories..."
-    
+
     # Create project directory
     mkdir -p "$PROJECT_DIR"
     chown "$SERVICE_USER:$SERVICE_GROUP" "$PROJECT_DIR"
     print_info "✓ Project directory: $PROJECT_DIR"
-    
+
     # Create logs directory
     mkdir -p "/var/log/gpio-safeguard"
     chown "$SERVICE_USER:$SERVICE_GROUP" "/var/log/gpio-safeguard"
@@ -116,7 +116,7 @@ setup_directories() {
 
 install_service_file() {
     print_step "Installing systemd service file..."
-    
+
     # Create the service file
     cat > "/etc/systemd/system/${SERVICE_NAME}.service" << EOF
 [Unit]
@@ -175,11 +175,11 @@ EOF
 
 configure_service() {
     print_step "Configuring systemd service..."
-    
+
     # Reload systemd
     systemctl daemon-reload
     print_info "✓ systemd daemon reloaded"
-    
+
     # Enable service
     systemctl enable "$SERVICE_NAME"
     print_info "✓ Service enabled for automatic startup"
@@ -187,10 +187,10 @@ configure_service() {
 
 test_gpio_safeguard() {
     print_step "Testing GPIO safeguard script..."
-    
+
     if [[ -f "$PROJECT_DIR/$SCRIPT_NAME" ]]; then
         print_info "✓ GPIO safeguard script found"
-        
+
         # Test dry-run mode
         if sudo -u "$SERVICE_USER" python3 "$PROJECT_DIR/$SCRIPT_NAME" --dry-run --help &>/dev/null; then
             print_info "✓ Script appears to be working"
@@ -293,7 +293,7 @@ main() {
     print_info "  Service name: $SERVICE_NAME"
     print_info "  Status interval: $STATUS_INTERVAL seconds"
     echo ""
-    
+
     check_root
     check_system_requirements
     check_gpio_access

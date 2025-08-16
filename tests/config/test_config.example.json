@@ -14,7 +14,7 @@
         "close_duration": 23
       },
       {
-        "entity_id": "cover.internal_garage_door", 
+        "entity_id": "cover.internal_garage_door",
         "name": "Internal Garage Door",
         "device_class": "garage",
         "open_duration": 15,
@@ -29,7 +29,7 @@
       },
       {
         "entity_id": "switch.gate_open_switch",
-        "name": "Gate Open Switch", 
+        "name": "Gate Open Switch",
         "gpio_pin": 3
       },
       {
@@ -51,4 +51,3 @@
     "log_level": "INFO"
   }
 }
-

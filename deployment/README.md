@@ -11,6 +11,7 @@ This directory contains everything needed to deploy the garage door controller s
 
 1. Copy files to target system
 2. Run installation scripts:
+
    ```bash
    sudo ./scripts/install-esphome-service.sh
    sudo ./scripts/install-gpio-safeguard-service.sh
