@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 SERVICE_USER="doorpi"
 SERVICE_GROUP="doorpi"
 PROJECT_DIR="/home/doorpi/garagedoor_esphome"
-VENV_PATH="/home/doorpi/esphome-venv"
+VENV_PATH="/home/doorpi/venv"
 YAML_FILE="garagedoor.yaml"
 SERVICE_NAME="esphome-garagedoor"
 
@@ -94,10 +94,9 @@ install_service_file() {
     cat > "/etc/systemd/system/${SERVICE_NAME}.service" << EOF
 [Unit]
 Description=ESPHome Garage Door Controller
-Documentation=https://esphome.io/
+Documentation=https://github.com/joselsegura/garagedoor-esphome/blob/main/README.md
 After=network-online.target
 Wants=network-online.target
-Restart=on-failure
 
 [Service]
 Type=simple
@@ -116,7 +115,7 @@ SyslogIdentifier=$SERVICE_NAME
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ProtectHome=true
+ProtectHome=false
 ReadWritePaths=$PROJECT_DIR
 ReadWritePaths=/var/log/esphome
 ProtectKernelTunables=true
@@ -147,7 +146,7 @@ show_instructions() {
     echo -e "${GREEN}Installation completed successfully!${NC}"
     echo ""
     echo -e "${BLUE}Next steps:${NC}"
-    echo "1. Copy your ESPHome YAML file to: $PROJECT_DIR/$YAML_FILE"
+    echo "1. Ensure the garagedoor_esphome repository is cloned to: $PROJECT_DIR"
     echo "2. Install ESPHome in virtual environment: $VENV_PATH"
     echo "3. Test the service manually:"
     echo "   sudo systemctl start $SERVICE_NAME"
@@ -167,7 +166,7 @@ show_instructions() {
     echo ""
     echo -e "${YELLOW}Remember to:${NC}"
     echo "• Ensure ESPHome is installed in the virtual environment"
-    echo "• Place your YAML configuration file in the project directory"
+    echo "• Ensure the garagedoor.yaml file exists in the repository"
     echo "• Check that the service user has GPIO access permissions"
 }
 
@@ -200,7 +199,7 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  --user USER           Service user (default: doorpi)"
             echo "  --project-dir DIR     Project directory (default: /home/doorpi/garagedoor_esphome)"
-            echo "  --venv-path PATH      Virtual environment path (default: /home/doorpi/esphome-venv)"
+            echo "  --venv-path PATH      Virtual environment path (default: /home/doorpi/venv)"
             echo "  --yaml-file FILE      ESPHome YAML file (default: garagedoor.yaml)"
             echo "  --service-name NAME   Service name (default: esphome-garagedoor)"
             echo "  -h, --help           Show this help message"

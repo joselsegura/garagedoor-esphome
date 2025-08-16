@@ -121,7 +121,7 @@ install_service_file() {
     cat > "/etc/systemd/system/${SERVICE_NAME}.service" << EOF
 [Unit]
 Description=GPIO Safeguard Protection System
-Documentation=GPIO monitoring and protection service for garage door controller
+Documentation=https://github.com/joselsegura/garagedoor-esphome/blob/main/README.md
 After=network.target
 Wants=network.target
 PartOf=esphome-garagedoor.service
@@ -132,7 +132,7 @@ Type=simple
 User=$SERVICE_USER
 Group=$SERVICE_GROUP
 WorkingDirectory=$PROJECT_DIR
-ExecStart=/usr/bin/python3 $PROJECT_DIR/$SCRIPT_NAME --status-interval $STATUS_INTERVAL
+ExecStart=/usr/bin/python3 $PROJECT_DIR/scripts/monitoring/$SCRIPT_NAME --status-interval $STATUS_INTERVAL
 Restart=always
 RestartSec=5
 TimeoutStartSec=30
@@ -148,7 +148,7 @@ Environment=PYTHONUNBUFFERED=1
 NoNewPrivileges=false
 PrivateTmp=true
 ProtectSystem=strict
-ProtectHome=true
+ProtectHome=false
 ReadWritePaths=$PROJECT_DIR
 ReadWritePaths=/var/log/gpio-safeguard
 ReadWritePaths=/dev/gpiomem
@@ -188,18 +188,18 @@ configure_service() {
 test_gpio_safeguard() {
     print_step "Testing GPIO safeguard script..."
 
-    if [[ -f "$PROJECT_DIR/$SCRIPT_NAME" ]]; then
+    if [[ -f "$PROJECT_DIR/scripts/monitoring/$SCRIPT_NAME" ]]; then
         print_info "✓ GPIO safeguard script found"
 
         # Test dry-run mode
-        if sudo -u "$SERVICE_USER" python3 "$PROJECT_DIR/$SCRIPT_NAME" --dry-run --help &>/dev/null; then
+        if sudo -u "$SERVICE_USER" python3 "$PROJECT_DIR/scripts/monitoring/$SCRIPT_NAME" --dry-run --help &>/dev/null; then
             print_info "✓ Script appears to be working"
         else
             print_warning "Script test failed. Check dependencies and permissions."
         fi
     else
-        print_warning "GPIO safeguard script not found at $PROJECT_DIR/$SCRIPT_NAME"
-        print_info "Make sure to copy gpio_safeguard.py to the project directory"
+        print_warning "GPIO safeguard script not found at $PROJECT_DIR/scripts/monitoring/$SCRIPT_NAME"
+        print_info "Make sure the garagedoor_esphome repository is properly cloned to the project directory"
     fi
 }
 
@@ -208,7 +208,7 @@ show_instructions() {
     echo -e "${GREEN}GPIO Safeguard Service installation completed!${NC}"
     echo ""
     echo -e "${BLUE}Next steps:${NC}"
-    echo "1. Copy gpio_safeguard.py to: $PROJECT_DIR/$SCRIPT_NAME"
+    echo "1. Ensure the garagedoor_esphome repository is cloned to: $PROJECT_DIR"
     echo "2. Ensure raspi-gpio is installed: sudo apt install raspi-gpio"
     echo "3. Test the service:"
     echo "   sudo systemctl start $SERVICE_NAME"
@@ -220,7 +220,7 @@ show_instructions() {
     echo "• Restart service:  sudo systemctl restart $SERVICE_NAME"
     echo "• Check status:     sudo systemctl status $SERVICE_NAME"
     echo "• View logs:        sudo journalctl -u $SERVICE_NAME -f"
-    echo "• Dry-run test:     sudo -u $SERVICE_USER python3 $PROJECT_DIR/$SCRIPT_NAME --dry-run"
+    echo "• Dry-run test:     sudo -u $SERVICE_USER python3 $PROJECT_DIR/scripts/monitoring/$SCRIPT_NAME --dry-run"
     echo ""
     echo -e "${BLUE}Configuration:${NC}"
     echo "• Service file:     /etc/systemd/system/${SERVICE_NAME}.service"
