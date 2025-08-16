@@ -1,0 +1,54 @@
+{
+  "home_assistant": {
+    "url": "http://192.168.1.100:8123",
+    "token": "your_long_lived_access_token_here",
+    "timeout": 10
+  },
+  "entities": {
+    "covers": [
+      {
+        "entity_id": "cover.garage_door",
+        "name": "Main Garage Door",
+        "device_class": "gate",
+        "open_duration": 18,
+        "close_duration": 23
+      },
+      {
+        "entity_id": "cover.internal_garage_door", 
+        "name": "Internal Garage Door",
+        "device_class": "garage",
+        "open_duration": 15,
+        "close_duration": 15
+      }
+    ],
+    "switches": [
+      {
+        "entity_id": "switch.gate_close_switch",
+        "name": "Gate Close Switch",
+        "gpio_pin": 2
+      },
+      {
+        "entity_id": "switch.gate_open_switch",
+        "name": "Gate Open Switch", 
+        "gpio_pin": 3
+      },
+      {
+        "entity_id": "switch.gate_lock_open_switch",
+        "name": "Gate Lock Open Switch",
+        "gpio_pin": 4
+      },
+      {
+        "entity_id": "switch.internal_door_click",
+        "name": "Internal Door Click Switch",
+        "gpio_pin": 10
+      }
+    ]
+  },
+  "test_settings": {
+    "delay_between_tests": 1.0,
+    "safety_delay_after_movement": 5.0,
+    "max_retries": 3,
+    "log_level": "INFO"
+  }
+}
+

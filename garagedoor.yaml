@@ -65,17 +65,10 @@ script:
       value: boolean
     then:
       - lambda: |-
-          pid_t id = fork();
-
-          if (id == 0) { // I'm the child
-            std::string pin_str = std::to_string(pin);
-            std::string value_str = value == 1? std::string("dh"): std::string("dl");
-            execl("/usr/bin/raspi-gpio", "/usr/bin/raspi-gpio", "set", pin_str.c_str(), value_str.c_str(), NULL);
-
-            // Something bad happened
-            printf("Error: %d", errno);            
-            exit(0);
-          }
+          std::string pin_str = std::to_string(pin);
+          std::string value_str = value == 1? std::string("dh"): std::string("dl");
+          std::string cmd = "/usr/bin/raspi-gpio set " + pin_str + " " + value_str; 
+          system(cmd.c_str());
 
   - id: test_exec
     parameters:
@@ -104,8 +97,8 @@ cover:
     open_action: 
       - switch.turn_on: gate_lock_open_switch
       - delay: 1s
-      - switch.turn_on: gate_open_switch
       - switch.turn_off: gate_lock_open_switch
+      - switch.turn_on: gate_open_switch
     open_duration: 18s
 
     close_action: 

@@ -1,0 +1,49 @@
+[Unit]
+Description=GPIO Safeguard Protection System
+Documentation=GPIO monitoring and protection service for garage door controller
+After=network.target
+Wants=network.target
+PartOf=esphome-garagedoor.service
+Conflicts=shutdown.target
+
+[Service]
+Type=simple
+User=doorpi
+Group=doorpi
+WorkingDirectory=/home/doorpi/garagedoor_esphome
+ExecStart=/usr/bin/python3 /home/doorpi/garagedoor_esphome/scripts/monitoring/gpio_safeguard.py --status-interval 60
+Restart=always
+RestartSec=5
+TimeoutStartSec=30
+TimeoutStopSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gpio-safeguard
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+
+# Security settings
+NoNewPrivileges=false
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/doorpi/garagedoor_esphome
+ReadWritePaths=/var/log
+ReadWritePaths=/dev/gpiomem
+ReadWritePaths=/sys/class/gpio
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Resource limits
+MemoryMax=128M
+CPUQuota=50%
+
+# Capabilities for GPIO access
+CapabilityBoundingSet=CAP_SYS_RAWIO
+AmbientCapabilities=CAP_SYS_RAWIO
+
+[Install]
+WantedBy=multi-user.target
+Also=esphome-garagedoor.service

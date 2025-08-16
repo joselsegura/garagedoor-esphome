@@ -1,0 +1,110 @@
+[project]
+name = "garagedoor-esphome"
+version = "1.0.0"
+description = "ESPHome Garage Door Controller with GPIO monitoring and safety protection"
+authors = [
+    {name = "Garage Door Controller Team"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+dependencies = [
+    "requests>=2.25.0",
+    "esphome>=2023.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=3.0.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+# Ruff configuration for Python linting and formatting
+target-version = "py38"
+line-length = 100
+indent-width = 4
+
+# Enable specific rule sets
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "I",    # isort
+    "N",    # pep8-naming
+    "D",    # pydocstring
+    "S",    # flake8-bandit (security)
+    "C4",   # flake8-comprehensions
+    "PT",   # flake8-pytest-style
+    "RET",  # flake8-return
+    "ARG",  # flake8-unused-arguments
+    "ERA",  # eradicate (commented code)
+    "PL",   # Pylint
+    "TRY",  # tryceratops
+    "FLY",  # flynt
+    "PERF", # Perflint
+]
+
+# Ignore specific rules
+ignore = [
+    "D100",   # Missing docstring in public module
+    "D101",   # Missing docstring in public class
+    "D102",   # Missing docstring in public method
+    "D103",   # Missing docstring in public function
+    "D104",   # Missing docstring in public package
+    "D105",   # Missing docstring in magic method
+    "S101",   # Use of assert detected
+    "PLR0913", # Too many arguments to function call
+    "PLR0912", # Too many branches
+    "PLR0915", # Too many statements
+    "TRY003", # Avoid specifying long messages outside the exception class
+]
+
+# Exclude specific files and directories
+exclude = [
+    ".git",
+    ".esphome",
+    "__pycache__",
+    "*.pyc",
+    ".pytest_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".venv",
+    "venv",
+]
+
+[tool.ruff.format]
+# Formatter configuration
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+# Import sorting configuration
+known-first-party = ["scripts"]
+force-single-line = false
+lines-after-imports = 2
+
+[tool.ruff.lint.pydocstyle]
+# Docstring style
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Per-file rule ignores
+"scripts/testing/*" = ["S101"]  # Allow assert in test files
+"tests/*" = ["S101", "D"]       # Allow assert and skip docstrings in tests
+"**/test_*.py" = ["S101", "D"]  # Allow assert and skip docstrings in test files
+
+[tool.ruff.lint.flake8-bandit]
+# Security scanning configuration
+check-typed-exception = true

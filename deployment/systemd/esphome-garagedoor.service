@@ -1,0 +1,32 @@
+[Unit]
+Description=ESPHome Garage Door Controller
+Documentation=https://esphome.io/
+After=network-online.target
+Wants=network-online.target
+Restart=on-failure
+
+[Service]
+Type=simple
+User=doorpi
+Group=doorpi
+WorkingDirectory=/home/doorpi/garagedoor_esphome
+Environment=PATH=/home/doorpi/esphome-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/home/doorpi/esphome-venv/bin/esphome run garagedoor.yaml
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=esphome-garagedoor
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/doorpi/garagedoor_esphome
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

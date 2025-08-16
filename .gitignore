@@ -1,0 +1,32 @@
+# Logs
+logs/
+*.log
+
+# Secrets
+secrets.yaml
+
+# Temporary files
+*~
+*.tmp
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Test results
+tests/data/*.json
+tests/data/*.log
+
+# Backups
+backups/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
