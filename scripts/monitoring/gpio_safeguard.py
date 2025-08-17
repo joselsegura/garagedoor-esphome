@@ -92,10 +92,9 @@ class GPIOSafeguard:
             # Example output: "GPIO 2: level=1 fsel=1 func=OUTPUT pull=DOWN"
             if "level=1" in output:
                 return 1
-            elif "level=0" in output:
+            if "level=0" in output:
                 return 0
-            else:
-                return None
+            return None
         except subprocess.CalledProcessError as e:
             self.logger.warning(f"Failed to read GPIO{pin}: {e}")
             return None
@@ -131,7 +130,7 @@ class GPIOSafeguard:
                     else:
                         self.logger.info(f"🔧 CORRECTED: Set GPIO{pin} to {value} (verified)")
                     return True
-                elif actual_value is None:
+                if actual_value is None:
                     self.logger.warning(
                         f"⚠️  Set GPIO{pin} to {value} but could not verify (read failed) - attempt {attempt + 1}"
                     )
@@ -139,18 +138,16 @@ class GPIOSafeguard:
                         time.sleep(0.05)  # Wait a bit longer before retry
                         continue
                     return False  # Treat read failure as set failure for safety
-                else:
-                    self.logger.warning(
-                        f"⚠️  Set GPIO{pin} to {value} but read back {actual_value} - attempt {attempt + 1}"
-                    )
-                    if attempt < max_retries - 1:
-                        time.sleep(0.05)  # Wait a bit before retry
-                        continue
-                    else:
-                        self.logger.error(
-                            f"❌ Set GPIO{pin} to {value} but read back {actual_value} after {max_retries} attempts - GPIO change failed!"
-                        )
-                        return False
+                self.logger.warning(
+                    f"⚠️  Set GPIO{pin} to {value} but read back {actual_value} - attempt {attempt + 1}"
+                )
+                if attempt < max_retries - 1:
+                    time.sleep(0.05)  # Wait a bit before retry
+                    continue
+                self.logger.error(
+                    f"❌ Set GPIO{pin} to {value} but read back {actual_value} after {max_retries} attempts - GPIO change failed!"
+                )
+                return False
 
             except subprocess.CalledProcessError as e:
                 self.logger.warning(
@@ -159,11 +156,10 @@ class GPIOSafeguard:
                 if attempt < max_retries - 1:
                     time.sleep(0.05)  # Wait before retry
                     continue
-                else:
-                    self.logger.error(
-                        f"❌ Failed to set GPIO{pin} to {value} after {max_retries} attempts"
-                    )
-                    return False
+                self.logger.error(
+                    f"❌ Failed to set GPIO{pin} to {value} after {max_retries} attempts"
+                )
+                return False
 
         return False
 

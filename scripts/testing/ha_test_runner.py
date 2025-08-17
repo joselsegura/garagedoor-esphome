@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Home Assistant API Test Runner for Garage Door Controller
+"""Home Assistant API Test Runner for Garage Door Controller.
 
 This script automates the testing of Home Assistant API calls for the
 ESPHome garage door controller. It executes the test plan and provides
@@ -27,9 +27,10 @@ logger = logging.getLogger(__name__)
 
 
 class HomeAssistantTester:
-    """Test runner for Home Assistant API calls"""
+    """Test runner for Home Assistant API calls."""
 
     def __init__(self, ha_url: str, token: str, timeout: int = 10):
+        """Initialize the HomeAssistantTester class."""
         self.ha_url = ha_url.rstrip("/")
         self.headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
         self.timeout = timeout
@@ -38,7 +39,7 @@ class HomeAssistantTester:
     def make_request(
         self, method: str, endpoint: str, data: Optional[dict] = None
     ) -> tuple[int, dict, float]:
-        """Make HTTP request to Home Assistant API"""
+        """Make HTTP request to Home Assistant API."""
         url = f"{self.ha_url}{endpoint}"
         start_time = time.time()
 
@@ -58,7 +59,8 @@ class HomeAssistantTester:
             except json.JSONDecodeError:
                 response_data = {"text": response.text}
 
-            return response.status_code, response_data, response_time
+            else:
+                return response.status_code, response_data, response_time
 
         except requests.exceptions.RequestException as e:
             end_time = time.time()
@@ -68,7 +70,7 @@ class HomeAssistantTester:
     def test_cover_service(
         self, entity_id: str, service: str, test_id: str, description: str
     ) -> bool:
-        """Test cover service call"""
+        """Test cover service call."""
         logger.info(f"Running {test_id}: {description}")
 
         endpoint = f"/api/services/cover/{service}"
@@ -76,7 +78,7 @@ class HomeAssistantTester:
 
         status_code, response_data, response_time = self.make_request("POST", endpoint, data)
 
-        success = status_code == 200
+        success = status_code == requests.codes.ok
         result = {
             "test_id": test_id,
             "description": description,
@@ -103,7 +105,7 @@ class HomeAssistantTester:
     def test_switch_service(
         self, entity_id: str, service: str, test_id: str, description: str
     ) -> bool:
-        """Test switch service call"""
+        """Test switch service call."""
         logger.info(f"Running {test_id}: {description}")
 
         endpoint = f"/api/services/switch/{service}"
@@ -111,7 +113,7 @@ class HomeAssistantTester:
 
         status_code, response_data, response_time = self.make_request("POST", endpoint, data)
 
-        success = status_code == 200
+        success = status_code == requests.codes.ok
         result = {
             "test_id": test_id,
             "description": description,
@@ -136,14 +138,14 @@ class HomeAssistantTester:
         return success
 
     def test_entity_state(self, entity_id: str, test_id: str, description: str) -> bool:
-        """Test getting entity state"""
+        """Test getting entity state."""
         logger.info(f"Running {test_id}: {description}")
 
         endpoint = f"/api/states/{entity_id}"
 
         status_code, response_data, response_time = self.make_request("GET", endpoint)
 
-        success = status_code == 200
+        success = status_code == requests.codes.ok
         result = {
             "test_id": test_id,
             "description": description,
@@ -169,14 +171,14 @@ class HomeAssistantTester:
         return success
 
     def test_all_states(self, test_id: str, description: str) -> bool:
-        """Test getting all entity states"""
+        """Test getting all entity states."""
         logger.info(f"Running {test_id}: {description}")
 
         endpoint = "/api/states"
 
         status_code, response_data, response_time = self.make_request("GET", endpoint)
 
-        success = status_code == 200
+        success = status_code == requests.codes.ok
         entity_count = len(response_data) if isinstance(response_data, list) else 0
 
         result = {
@@ -205,7 +207,7 @@ class HomeAssistantTester:
         return success
 
     def run_basic_cover_tests(self) -> int:
-        """Run basic cover entity tests"""
+        """Run basic cover entity tests."""
         logger.info("=" * 60)
         logger.info("RUNNING COVER ENTITY TESTS")
         logger.info("=" * 60)
@@ -252,7 +254,7 @@ class HomeAssistantTester:
         return failed_tests
 
     def run_basic_switch_tests(self) -> int:
-        """Run basic switch entity tests"""
+        """Run basic switch entity tests."""
         logger.info("=" * 60)
         logger.info("RUNNING SWITCH ENTITY TESTS")
         logger.info("=" * 60)
@@ -287,7 +289,7 @@ class HomeAssistantTester:
         return failed_tests
 
     def run_state_tests(self) -> int:
-        """Run entity state verification tests"""
+        """Run entity state verification tests."""
         logger.info("=" * 60)
         logger.info("RUNNING STATE VERIFICATION TESTS")
         logger.info("=" * 60)
@@ -320,7 +322,7 @@ class HomeAssistantTester:
         return failed_tests
 
     def run_error_tests(self) -> int:
-        """Run error condition tests"""
+        """Run error condition tests."""
         logger.info("=" * 60)
         logger.info("RUNNING ERROR CONDITION TESTS")
         logger.info("=" * 60)
@@ -335,7 +337,7 @@ class HomeAssistantTester:
         status_code, response_data, response_time = self.make_request("POST", endpoint, data)
 
         # This should fail (we expect it to fail)
-        if status_code == 200:
+        if status_code == requests.codes.ok:
             logger.warning(f"⚠️  ETC-001: Expected failure but got success (HTTP {status_code})")
         else:
             logger.info(
@@ -350,7 +352,7 @@ class HomeAssistantTester:
         status_code, response_data, response_time = self.make_request("POST", endpoint, data)
 
         # This should fail (we expect it to fail)
-        if status_code == 200:
+        if status_code == requests.codes.ok:
             logger.warning(f"⚠️  ETC-003: Expected failure but got success (HTTP {status_code})")
         else:
             logger.info(
@@ -360,7 +362,7 @@ class HomeAssistantTester:
         return failed_tests
 
     def run_all_tests(self) -> int:
-        """Run all test suites"""
+        """Run all test suites."""
         logger.info("🚀 Starting Home Assistant API Test Suite")
         logger.info(f"Target: {self.ha_url}")
         logger.info(f"Timeout: {self.timeout}s")
@@ -378,14 +380,14 @@ class HomeAssistantTester:
         except KeyboardInterrupt:
             logger.info("\n⏹️  Test execution interrupted by user")
             return -1
-        except Exception as e:
-            logger.error(f"❌ Test execution failed with error: {e}")
+        except Exception:
+            logger.exception("❌ Test execution failed with error")
             return -1
 
         return total_failed
 
     def generate_report(self) -> str:
-        """Generate test report"""
+        """Generate test report."""
         total_tests = len(self.test_results)
         passed_tests = sum(1 for result in self.test_results if result["success"])
         failed_tests = total_tests - passed_tests
@@ -414,13 +416,19 @@ Test Results:
 
         for result in self.test_results:
             status = "✅ PASS" if result["success"] else "❌ FAIL"
-            report += f"  {result['test_id']}: {status} ({result['response_time']:.3f}s) - {result['description']}\n"
+            report += (
+                f"  {result['test_id']}: {status} ({result['response_time']:.3f}s) - "
+                f"{result['description']}\n"
+            )
 
         if failed_tests > 0:
             report += "\nFailed Tests Details:\n"
             for result in self.test_results:
                 if not result["success"]:
-                    report += f"  {result['test_id']}: HTTP {result['status_code']} - {result.get('response_data', {})}\n"
+                    report += (
+                        f"  {result['test_id']}: HTTP {result['status_code']} - "
+                        f"{result.get('response_data', {})}\n"
+                    )
 
         report += f"\nTest completed at: {datetime.now().isoformat()}\n"
         report += "=" * 80
@@ -428,7 +436,7 @@ Test Results:
         return report
 
     def save_detailed_results(self, filename: str = "ha_test_detailed_results.json"):
-        """Save detailed test results to JSON file"""
+        """Save detailed test results to JSON file."""
         with open(filename, "w") as f:
             json.dump(
                 {
@@ -503,8 +511,8 @@ def main():
             logger.info("🎉 All tests passed!")
             sys.exit(0)  # All tests passed
 
-    except Exception as e:
-        logger.error(f"❌ Test runner failed: {e}")
+    except Exception:
+        logger.exception("❌ Test runner failed")
         sys.exit(2)
 
 

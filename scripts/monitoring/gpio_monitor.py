@@ -51,10 +51,9 @@ def read_gpio(pin):
         # Example output: "GPIO 2: level=1 fsel=1 func=OUTPUT pull=DOWN"
         if "level=1" in output:
             return 1
-        elif "level=0" in output:
+        if "level=0" in output:
             return 0
-        else:
-            return None
+        return None
     except subprocess.CalledProcessError:
         return None
 

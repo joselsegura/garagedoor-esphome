@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Garage Door Cycling Tool
+"""Garage Door Cycling Tool.
 
 This tool opens both garage doors, waits for them to be fully opened,
 then closes them. It repeats this cycle with random wait periods between
@@ -30,9 +30,10 @@ logger = logging.getLogger(__name__)
 
 
 class DoorCycler:
-    """Tool for cycling garage doors through open/close cycles"""
+    """Tool for cycling garage doors through open/close cycles."""
 
     def __init__(self, ha_url: str, token: str, timeout: int = 10):
+        """Initialize the DoorCycler class."""
         self.ha_url = ha_url.rstrip("/")
         self.headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
         self.timeout = timeout
@@ -42,7 +43,7 @@ class DoorCycler:
     def make_request(
         self, method: str, endpoint: str, data: Optional[dict] = None
     ) -> tuple[int, dict, float]:
-        """Make HTTP request to Home Assistant API"""
+        """Make HTTP request to Home Assistant API."""
         url = f"{self.ha_url}{endpoint}"
         start_time = time.time()
 
@@ -62,7 +63,8 @@ class DoorCycler:
             except json.JSONDecodeError:
                 response_data = {"text": response.text}
 
-            return response.status_code, response_data, response_time
+            else:
+                return response.status_code, response_data, response_time
 
         except requests.exceptions.RequestException as e:
             end_time = time.time()
@@ -70,26 +72,25 @@ class DoorCycler:
             return 0, {"error": str(e)}, response_time
 
     def get_door_state(self, entity_id: str) -> str:
-        """Get current state of a door entity"""
+        """Get current state of a door entity."""
         endpoint = f"/api/states/{entity_id}"
         status_code, response_data, response_time = self.make_request("GET", endpoint)
 
-        if status_code == 200:
+        if status_code == requests.codes.ok:
             state = response_data.get("state", "unknown")
             logger.debug(f"Door {entity_id} state: {state} ({response_time:.3f}s)")
             return state
-        else:
-            logger.error(f"Failed to get state for {entity_id}: HTTP {status_code}")
-            return "unknown"
+        logger.error(f"Failed to get state for {entity_id}: HTTP {status_code}")
+        return "unknown"
 
     def send_door_command(self, entity_id: str, service: str) -> bool:
-        """Send a command to a door entity"""
+        """Send a command to a door entity."""
         endpoint = f"/api/services/cover/{service}"
         data = {"entity_id": entity_id}
 
         status_code, response_data, response_time = self.make_request("POST", endpoint, data)
 
-        success = status_code == 200
+        success = status_code == requests.codes.ok
         door_name = entity_id.split(".")[-1].replace("_", " ").title()
 
         if success:
@@ -101,7 +102,7 @@ class DoorCycler:
         return success
 
     def wait_for_door_state(self, entity_id: str, target_state: str, max_wait: int = 60) -> bool:
-        """Wait for a door to reach the target state"""
+        """Wait for a door to reach the target state."""
         door_name = entity_id.split(".")[-1].replace("_", " ").title()
         logger.info(f"⏳ Waiting for {door_name} to reach '{target_state}' state...")
 
@@ -113,19 +114,20 @@ class DoorCycler:
                 elapsed = time.time() - start_time
                 logger.info(f"✅ {door_name} reached '{target_state}' state ({elapsed:.1f}s)")
                 return True
-            elif current_state in ["unavailable", "unknown"]:
+            if current_state in ["unavailable", "unknown"]:
                 logger.warning(f"⚠️  {door_name} state is {current_state}")
 
             time.sleep(2)  # Check every 2 seconds
 
         elapsed = time.time() - start_time
         logger.error(
-            f"❌ {door_name} did not reach '{target_state}' state within {max_wait}s (elapsed: {elapsed:.1f}s)"
+            f"❌ {door_name} did not reach '{target_state}' state "
+            f"within {max_wait}s (elapsed: {elapsed:.1f}s)"
         )
         return False
 
     def wait_for_both_doors_state(self, target_state: str, max_wait: int = 60) -> bool:
-        """Wait for both doors to reach the target state"""
+        """Wait for both doors to reach the target state."""
         logger.info(f"⏳ Waiting for both doors to reach '{target_state}' state...")
 
         main_success = self.wait_for_door_state(self.door_entities["main"], target_state, max_wait)
@@ -136,12 +138,11 @@ class DoorCycler:
         if main_success and internal_success:
             logger.info(f"✅ Both doors reached '{target_state}' state")
             return True
-        else:
-            logger.error(f"❌ One or both doors failed to reach '{target_state}' state")
-            return False
+        logger.error(f"❌ One or both doors failed to reach '{target_state}' state")
+        return False
 
     def open_both_doors(self) -> bool:
-        """Open both garage doors"""
+        """Open both garage doors."""
         logger.info("🚪 Opening both garage doors...")
 
         # Send open commands to both doors
@@ -156,7 +157,7 @@ class DoorCycler:
         return self.wait_for_both_doors_state("open")
 
     def close_both_doors(self) -> bool:
-        """Close both garage doors"""
+        """Close both garage doors."""
         logger.info("🚪 Closing both garage doors...")
 
         # Send close commands to both doors
@@ -171,7 +172,7 @@ class DoorCycler:
         return self.wait_for_both_doors_state("closed")
 
     def perform_cycle(self) -> bool:
-        """Perform one complete open/close cycle"""
+        """Perform one complete open/close cycle."""
         self.cycle_count += 1
         logger.info(f"🔄 Starting cycle #{self.cycle_count}")
         logger.info(f"   Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -193,7 +194,7 @@ class DoorCycler:
         return True
 
     def run_continuous_cycling(self, max_cycles: Optional[int] = None):
-        """Run continuous door cycling with random intervals"""
+        """Run continuous door cycling with random intervals."""
         logger.info("🚀 Starting garage door cycling tool")
         logger.info(f"Target: {self.ha_url}")
         logger.info(f"Main door: {self.door_entities['main']}")
@@ -204,6 +205,7 @@ class DoorCycler:
         else:
             logger.info("Maximum cycles: Unlimited (Ctrl+C to stop)")
         logger.info("=" * 60)
+        max_seconds = 5
 
         try:
             while True:
@@ -225,32 +227,31 @@ class DoorCycler:
 
                 # Sleep with periodic status updates
                 for remaining in range(wait_time, 0, -5):
-                    if remaining <= 5:
+                    if remaining <= max_seconds:
                         logger.info(f"   Starting next cycle in {remaining} seconds...")
                         time.sleep(remaining)
                         break
-                    else:
-                        time.sleep(5)
-                        if remaining % 10 == 0:  # Status update every 10 seconds
-                            logger.info(f"   Next cycle in {remaining} seconds...")
+                    time.sleep(5)
+                    if remaining % 10 == 0:  # Status update every 10 seconds
+                        logger.info(f"   Next cycle in {remaining} seconds...")
 
         except KeyboardInterrupt:
             logger.info("\n⏹️  Cycling stopped by user (Ctrl+C)")
-        except Exception as e:
-            logger.error(f"❌ Unexpected error: {e}")
+        except Exception:
+            logger.exception("❌ Unexpected error")
 
         logger.info(f"📊 Total cycles completed: {self.cycle_count}")
         logger.info("🏁 Door cycling tool finished")
 
     def test_connectivity(self) -> bool:
-        """Test connectivity to Home Assistant and door entities"""
+        """Test connectivity to Home Assistant and door entities."""
         logger.info("🔍 Testing connectivity to Home Assistant...")
 
         # Test basic connectivity
         endpoint = "/api/states"
         status_code, response_data, response_time = self.make_request("GET", endpoint)
 
-        if status_code != 200:
+        if status_code != requests.codes.ok:
             logger.error(f"❌ Failed to connect to Home Assistant: HTTP {status_code}")
             return False
 
@@ -262,8 +263,7 @@ class DoorCycler:
             if state == "unknown":
                 logger.error(f"❌ {door_name.title()} door entity ({entity_id}) not available")
                 return False
-            else:
-                logger.info(f"✅ {door_name.title()} door ({entity_id}) state: {state}")
+            logger.info(f"✅ {door_name.title()} door ({entity_id}) state: {state}")
 
         return True
 
@@ -304,8 +304,8 @@ def main():
         # Run continuous cycling
         cycler.run_continuous_cycling(args.max_cycles)
 
-    except Exception as e:
-        logger.error(f"❌ Tool failed: {e}")
+    except Exception:
+        logger.exception("❌ Tool failed")
         sys.exit(1)
 
 

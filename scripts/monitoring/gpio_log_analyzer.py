@@ -181,9 +181,8 @@ class GPIOLogAnalyzer:
             logger.error(f"❌ Initial state violation on line {first_entry.line_number}")
             logger.error(f"    Invalid pins: {', '.join(invalid_pins)}")
             return False
-        else:
-            logger.info("✅ Initial state is valid - all GPIO values are 1")
-            return True
+        logger.info("✅ Initial state is valid - all GPIO values are 1")
+        return True
 
     def validate_gpio4_transitions(self) -> bool:
         """Validate GPIO4 transitions: should go 1->0->1 with 1-2 second timing"""
@@ -279,9 +278,8 @@ class GPIOLogAnalyzer:
         if not transition_issues:
             logger.info("✅ All GPIO4 transitions are valid")
             return True
-        else:
-            logger.warning(f"⚠️  Found {len(transition_issues)} GPIO4 transition issues")
-            return False
+        logger.warning(f"⚠️  Found {len(transition_issues)} GPIO4 transition issues")
+        return False
 
     def validate_gpio3_transitions(self) -> bool:
         """Validate GPIO3 transitions: should go 1->0->1 with 15-20 second timing, after GPIO4 returns to 1"""
@@ -431,9 +429,8 @@ class GPIOLogAnalyzer:
         if not transition_issues:
             logger.info("✅ All GPIO3 transitions are valid")
             return True
-        else:
-            logger.warning(f"⚠️  Found {len(transition_issues)} GPIO3 transition issues")
-            return False
+        logger.warning(f"⚠️  Found {len(transition_issues)} GPIO3 transition issues")
+        return False
 
     def validate_gpio10_transitions(self) -> bool:
         """Validate GPIO10 transitions: should return to 1 within 4 seconds maximum when it goes to 0"""
@@ -507,7 +504,7 @@ class GPIOLogAnalyzer:
                                 "✅ Found GPIO10 return to 1 - timing not validated (no timestamps)"
                             )
                         break
-                    elif ret_state == 0:
+                    if ret_state == 0:
                         # Still at 0, continue looking
                         continue
 
@@ -560,9 +557,8 @@ class GPIOLogAnalyzer:
         if not transition_issues:
             logger.info("✅ All GPIO10 transitions are valid")
             return True
-        else:
-            logger.warning(f"⚠️  Found {len(transition_issues)} GPIO10 transition issues")
-            return False
+        logger.warning(f"⚠️  Found {len(transition_issues)} GPIO10 transition issues")
+        return False
 
     def validate_gpio2_transitions(self) -> bool:
         """Validate GPIO2 transitions: should return to 1 within 25 seconds maximum when it goes to 0"""
@@ -636,7 +632,7 @@ class GPIOLogAnalyzer:
                                 "✅ Found GPIO2 return to 1 - timing not validated (no timestamps)"
                             )
                         break
-                    elif ret_state == 0:
+                    if ret_state == 0:
                         # Still at 0, continue looking
                         continue
 
@@ -689,9 +685,8 @@ class GPIOLogAnalyzer:
         if not transition_issues:
             logger.info("✅ All GPIO2 transitions are valid")
             return True
-        else:
-            logger.warning(f"⚠️  Found {len(transition_issues)} GPIO2 transition issues")
-            return False
+        logger.warning(f"⚠️  Found {len(transition_issues)} GPIO2 transition issues")
+        return False
 
     def _parse_log_line(self, line_number: int, line: str) -> Optional[GPIOLogEntry]:
         """Parse a single log line"""
@@ -720,9 +715,8 @@ class GPIOLogAnalyzer:
                 pin = match.group(1)
                 state = int(match.group(2))
                 gpio_states[pin] = state
-            else:
-                if part:  # Only warn if part is not empty
-                    logger.warning(f"⚠️  Line {line_number}: Could not parse GPIO part: '{part}'")
+            elif part:  # Only warn if part is not empty
+                logger.warning(f"⚠️  Line {line_number}: Could not parse GPIO part: '{part}'")
 
         if not gpio_states:
             logger.warning(f"⚠️  Line {line_number}: No GPIO states found")
