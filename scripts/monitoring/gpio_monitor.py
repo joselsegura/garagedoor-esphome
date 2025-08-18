@@ -14,10 +14,10 @@ LOG_FILE = "/home/doorpi/gpio_monitor.log"
 
 
 class MillisecondFormatter(logging.Formatter):
-    """Custom formatter to include milliseconds in timestamp"""
+    """Custom formatter to include milliseconds in timestamp."""
 
-    def formatTime(self, record, datefmt=None):
-        """Override formatTime to include milliseconds"""
+    def formatTime(self, record, datefmt=None):  # noqa: ARG002, N802
+        """Override formatTime to include milliseconds."""
         ct = datetime.fromtimestamp(record.created)
         return ct.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Remove last 3 digits to get milliseconds
 
@@ -44,18 +44,26 @@ def setup_logger():
 
 def read_gpio(pin):
     """Uses 'raspi-gpio get <pin>' to read the pin status.
+
     Returns 0 or 1 depending on the detected logic level.
     """
     try:
-        output = subprocess.check_output(["raspi-gpio", "get", str(pin)], text=True)
+        output = subprocess.check_output(["/usr/bin/raspi-gpio", "get", str(pin)], text=True)  # noqa: S603
         # Example output: "GPIO 2: level=1 fsel=1 func=OUTPUT pull=DOWN"
         if "level=1" in output:
             return 1
         if "level=0" in output:
             return 0
+
         return None
+
     except subprocess.CalledProcessError:
         return None
+
+    else:
+        return None
+
+
 
 
 def main():

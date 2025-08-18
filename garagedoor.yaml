@@ -109,25 +109,6 @@ cover:
       - switch.turn_off: gate_open_switch
       - switch.turn_off: gate_lock_open_switch
 
-  - platform: time_based
-    id: internal_garage_door
-    device_class: garage
-    name: Internal garage door
-    open_action:
-      - switch.turn_on: internal_door_click
-      - delay: 3s
-      - switch.turn_off: internal_door_click
-    open_duration: 30s
-
-    close_action:
-      - switch.turn_on: internal_door_click
-      - delay: 3s
-      - switch.turn_off: internal_door_click
-    close_duration: 30s
-
-    stop_action:
-      - switch.turn_off: internal_door_click
-
 # Enable logging
 logger:
 

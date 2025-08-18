@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GPIO Log File Analyzer
+"""GPIO Log File Analyzer.
 
 This tool analyzes GPIO log files to check consistency between consecutive
 log entries. Each log line starts with a timestamp followed by '|' and
@@ -32,9 +32,10 @@ logger = logging.getLogger(__name__)
 
 
 class GPIOLogEntry:
-    """Represents a single GPIO log entry"""
+    """Represents a single GPIO log entry."""
 
     def __init__(self, line_number: int, timestamp_str: str, gpio_states: dict[str, int]):
+        """Initialise the GPIOLogEntry instance."""
         self.line_number = line_number
         self.timestamp_str = timestamp_str
         self.gpio_states = gpio_states
@@ -79,7 +80,7 @@ class GPIOLogEntry:
 
 
 class GPIOLogAnalyzer:
-    """Analyzes GPIO log files for consistency"""
+    """Analyzes GPIO log files for consistency."""
 
     def __init__(self):
         self.log_entries: list[GPIOLogEntry] = []
@@ -90,11 +91,11 @@ class GPIOLogAnalyzer:
         self.validation_rules = []
 
     def add_validation_rule(self, rule_func, description: str):
-        """Add a validation rule function"""
+        """Add a validation rule function."""
         self.validation_rules.append({"function": rule_func, "description": description})
 
     def parse_log_file(self, filename: str) -> bool:
-        """Parse the GPIO log file"""
+        """Parse the GPIO log file."""
         logger.info(f"📁 Parsing log file: {filename}")
 
         try:
@@ -153,7 +154,7 @@ class GPIOLogAnalyzer:
         return len(self.log_entries) > 0
 
     def validate_initial_state(self) -> bool:
-        """Validate that all GPIO values are 1 in the initial state"""
+        """Validate that all GPIO values are 1 in the initial state."""
         if not self.log_entries:
             logger.warning("⚠️  No log entries to validate initial state")
             return True
@@ -185,7 +186,7 @@ class GPIOLogAnalyzer:
         return True
 
     def validate_gpio4_transitions(self) -> bool:
-        """Validate GPIO4 transitions: should go 1->0->1 with 1-2 second timing"""
+        """Validate GPIO4 transitions: should go 1->0->1 with 1-2 second timing."""
         if len(self.log_entries) < 3:
             logger.warning("⚠️  Need at least 3 entries to validate GPIO4 transitions")
             return True
@@ -282,7 +283,7 @@ class GPIOLogAnalyzer:
         return False
 
     def validate_gpio3_transitions(self) -> bool:
-        """Validate GPIO3 transitions: should go 1->0->1 with 15-20 second timing, after GPIO4 returns to 1"""
+        """Validate GPIO3 transitions: should go 1->0->1 with 15-20 second timing, after GPIO4 returns to 1."""
         if len(self.log_entries) < 5:
             logger.warning("⚠️  Need at least 5 entries to validate GPIO3 transitions")
             return True
@@ -433,7 +434,7 @@ class GPIOLogAnalyzer:
         return False
 
     def validate_gpio10_transitions(self) -> bool:
-        """Validate GPIO10 transitions: should return to 1 within 4 seconds maximum when it goes to 0"""
+        """Validate GPIO10 transitions: should return to 1 within 4 seconds maximum when it goes to 0."""
         if len(self.log_entries) < 2:
             logger.warning("⚠️  Need at least 2 entries to validate GPIO10 transitions")
             return True
@@ -561,7 +562,7 @@ class GPIOLogAnalyzer:
         return False
 
     def validate_gpio2_transitions(self) -> bool:
-        """Validate GPIO2 transitions: should return to 1 within 25 seconds maximum when it goes to 0"""
+        """Validate GPIO2 transitions: should return to 1 within 25 seconds maximum when it goes to 0."""
         if len(self.log_entries) < 2:
             logger.warning("⚠️  Need at least 2 entries to validate GPIO2 transitions")
             return True
@@ -637,22 +638,21 @@ class GPIOLogAnalyzer:
                         continue
 
                 # If we didn't find a return to 1, that might be an issue
-                if not return_to_1_found:
-                    # Check if this is the last transition or if there are more entries to check
-                    if i + 2 >= len(gpio2_transitions):
-                        logger.warning(
-                            f"⚠️  GPIO2 went to 0 at line {next_line} but no return to 1 found in remaining log"
-                        )
-                        issue = {
-                            "type": "gpio2_no_return",
-                            "line_numbers": (next_line,),
-                            "description": "GPIO2 went to 0 but never returned to 1",
-                            "details": {
-                                "transition_line": next_line,
-                                "expected": "GPIO2 should return to 1 within 25 seconds",
-                            },
-                        }
-                        transition_issues.append(issue)
+                # Check if this is the last transition or if there are more entries to check
+                if not return_to_1_found and i + 2 >= len(gpio2_transitions):
+                    logger.warning(
+                        f"⚠️  GPIO2 went to 0 at line {next_line} but no return to 1 found in remaining log"
+                    )
+                    issue = {
+                        "type": "gpio2_no_return",
+                        "line_numbers": (next_line,),
+                        "description": "GPIO2 went to 0 but never returned to 1",
+                        "details": {
+                            "transition_line": next_line,
+                            "expected": "GPIO2 should return to 1 within 25 seconds",
+                        },
+                    }
+                    transition_issues.append(issue)
 
         # Also check for GPIO2 staying at 0 too long between any consecutive 0 states
         for i in range(len(gpio2_transitions) - 1):
@@ -689,7 +689,7 @@ class GPIOLogAnalyzer:
         return False
 
     def _parse_log_line(self, line_number: int, line: str) -> Optional[GPIOLogEntry]:
-        """Parse a single log line"""
+        """Parse a single log line."""
         # Expected format: YYYY-MM-DD HH:MM:SS.fff | GPIO2=1 | GPIO3=1 | GPIO4=1 | GPIO10=1
 
         if "|" not in line:
@@ -709,14 +709,14 @@ class GPIOLogAnalyzer:
         gpio_pattern = re.compile(r"GPIO(\d+)=(\d+)")
 
         for part in gpio_parts:
-            part = part.strip()
-            match = gpio_pattern.match(part)
+            part_ = part.strip()
+            match = gpio_pattern.match(part_)
             if match:
                 pin = match.group(1)
                 state = int(match.group(2))
                 gpio_states[pin] = state
-            elif part:  # Only warn if part is not empty
-                logger.warning(f"⚠️  Line {line_number}: Could not parse GPIO part: '{part}'")
+            elif part_:  # Only warn if part is not empty
+                logger.warning(f"⚠️  Line {line_number}: Could not parse GPIO part: '{part_}'")
 
         if not gpio_states:
             logger.warning(f"⚠️  Line {line_number}: No GPIO states found")
@@ -725,7 +725,7 @@ class GPIOLogAnalyzer:
         return GPIOLogEntry(line_number, timestamp_str, gpio_states)
 
     def check_consistency(self) -> bool:
-        """Check consistency between consecutive log entries and validate initial state"""
+        """Check consistency between consecutive log entries and validate initial state."""
         logger.info("🔍 Checking GPIO log consistency...")
 
         # First, validate initial state
@@ -799,10 +799,11 @@ class GPIOLogAnalyzer:
                         self.inconsistencies.append(issue)
                         inconsistency_count += 1
                         logger.warning(
-                            f"⚠️  {issue['description']} (lines {prev_entry.line_number}-{curr_entry.line_number})"
+                            f"⚠️  {issue['description']} (lines {prev_entry.line_number}-"
+                            f"{curr_entry.line_number})"
                         )
-                except Exception as e:
-                    logger.error(f"❌ Error applying rule '{rule['description']}': {e}")
+                except Exception:
+                    logger.exception("❌ Error applying rule '{rule['description']}'")
 
         consecutive_consistent = inconsistency_count == 0
         if consecutive_consistent:
@@ -827,7 +828,7 @@ class GPIOLogAnalyzer:
         return overall_valid
 
     def generate_report(self) -> str:
-        """Generate analysis report"""
+        """Generate analysis report."""
         report = []
         report.append("=" * 80)
         report.append("GPIO LOG FILE ANALYSIS REPORT")
@@ -848,7 +849,8 @@ class GPIOLogAnalyzer:
         report.append("  1. Initial state: All GPIO values should be 1")
         report.append("  2. GPIO4 transitions: Should go 1->0->1 with 1-2 second timing")
         report.append(
-            "  3. GPIO3 transitions: Should go 1->0->1 with 15-20 second timing, after GPIO4 returns to 1"
+            "  3. GPIO3 transitions: Should go 1->0->1 with 15-20 second timing, "
+            "after GPIO4 returns to 1"
         )
         report.append(
             "  4. GPIO10 transitions: Should return to 1 within 4 seconds maximum when it goes to 0"
@@ -904,14 +906,14 @@ class GPIOLogAnalyzer:
         return "\n".join(report)
 
     def save_report(self, filename: str = "gpio_analysis_report.txt"):
-        """Save analysis report to file"""
+        """Save analysis report to file."""
         report = self.generate_report()
         try:
             with open(filename, "w") as f:
                 f.write(report)
             logger.info(f"📄 Analysis report saved to {filename}")
-        except Exception as e:
-            logger.error(f"❌ Failed to save report: {e}")
+        except Exception:
+            logger.exception("❌ Failed to save report")
 
 
 def main():
@@ -959,8 +961,8 @@ def main():
             logger.info("✅ Analysis completed successfully - no inconsistencies found")
             sys.exit(0)
 
-    except Exception as e:
-        logger.error(f"❌ Analysis failed: {e}")
+    except Exception:
+        logger.exception("❌ Analysis failed")
         sys.exit(2)
 
 

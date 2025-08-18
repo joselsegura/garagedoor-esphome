@@ -222,7 +222,7 @@ class DoorCycler:
                     break
 
                 # Random wait between cycles (15-30 seconds)
-                wait_time = random.randint(15, 30)
+                wait_time = random.randint(15, 30)  # noqa: S311
                 logger.info(f"⏰ Waiting {wait_time} seconds before next cycle...")
 
                 # Sleep with periodic status updates

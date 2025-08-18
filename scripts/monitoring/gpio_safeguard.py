@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GPIO Safeguard System
+"""GPIO Safeguard System.
 
 This program monitors GPIO pins and actively enforces safety rules to prevent
 dangerous states that could damage equipment or cause malfunctions.
@@ -24,14 +24,13 @@ from typing import Optional
 
 
 # GPIO pins to monitor and protect
-MONITORED_PINS = [2, 3, 4, 10]
+MONITORED_PINS = [2, 3, 4]
 
 # Safety timing rules (in seconds)
 SAFETY_RULES = {
     2: 25.0,  # GPIO2: max 25 seconds at 0
     3: 20.0,  # GPIO3: max 20 seconds at 0
     4: 2.0,  # GPIO4: max 2 seconds at 0
-    10: 4.0,  # GPIO10: max 4 seconds at 0
 }
 
 # Log file path
@@ -39,18 +38,19 @@ LOG_FILE = "/home/doorpi/gpio_safeguard.log"
 
 
 class MillisecondFormatter(logging.Formatter):
-    """Custom formatter to include milliseconds in timestamp"""
+    """Custom formatter to include milliseconds in timestamp."""
 
-    def formatTime(self, record, datefmt=None):
-        """Override formatTime to include milliseconds"""
+    def formatTime(self, record, datefmt=None):  # noqa: ARG002, N802
+        """Override formatTime to include milliseconds."""
         ct = datetime.fromtimestamp(record.created)
         return ct.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Remove last 3 digits to get milliseconds
 
 
 class GPIOSafeguard:
-    """GPIO monitoring and protection system"""
+    """GPIO monitoring and protection system."""
 
     def __init__(self, dry_run=False):
+        """Initialise the GPIOSafeGuard instance."""
         self.dry_run = dry_run
         self.logger = self.setup_logger()
         self.gpio_states = {}
@@ -59,7 +59,7 @@ class GPIOSafeguard:
         self.corrections_made = 0
 
     def setup_logger(self):
-        """Setup logging with millisecond precision"""
+        """Setup logging with millisecond precision."""
         logger = logging.getLogger("GPIO_Safeguard")
         logger.setLevel(logging.INFO)
 
@@ -83,24 +83,27 @@ class GPIOSafeguard:
 
     def read_gpio(self, pin: int) -> Optional[int]:
         """Read GPIO pin state using raspi-gpio command.
+
         Returns 0, 1, or None if error.
         """
         try:
-            output = subprocess.check_output(
-                ["raspi-gpio", "get", str(pin)], text=True, stderr=subprocess.DEVNULL
+            output = subprocess.check_output(  # noqa: S603
+                ["/usr/bin/raspi-gpio", "get", str(pin)], text=True, stderr=subprocess.DEVNULL
             )
             # Example output: "GPIO 2: level=1 fsel=1 func=OUTPUT pull=DOWN"
             if "level=1" in output:
                 return 1
             if "level=0" in output:
                 return 0
-            return None
+
         except subprocess.CalledProcessError as e:
             self.logger.warning(f"Failed to read GPIO{pin}: {e}")
-            return None
+
+        return None
 
     def set_gpio(self, pin: int, value: int, max_retries: int = 3) -> bool:
         """Set GPIO pin to specified value (0 or 1) with verification and retries.
+
         Verifies the change by reading back the pin state.
         Returns True if successful and verified, False otherwise.
         """
@@ -112,11 +115,11 @@ class GPIOSafeguard:
             try:
                 # Use raspi-gpio to set the pin
                 if value == 1:
-                    cmd = ["raspi-gpio", "set", str(pin), "op", "dh"]  # drive high
+                    cmd = ["/usr/bin/raspi-gpio", "set", str(pin), "op", "dh"]  # drive high
                 else:
-                    cmd = ["raspi-gpio", "set", str(pin), "op", "dl"]  # drive low
+                    cmd = ["/usr/bin/raspi-gpio", "set", str(pin), "op", "dl"]  # drive low
 
-                subprocess.check_call(cmd, stderr=subprocess.DEVNULL)
+                subprocess.check_call(cmd, stderr=subprocess.DEVNULL)  # noqa: S603
 
                 # Verify the change by reading back the pin state
                 time.sleep(0.01)  # Brief delay to ensure the change has taken effect
@@ -125,29 +128,32 @@ class GPIOSafeguard:
                 if actual_value == value:
                     if attempt > 0:
                         self.logger.info(
-                            f"🔧 CORRECTED: Set GPIO{pin} to {value} (verified on attempt {attempt + 1})"
+                            f"🔧 CORRECTED: Set GPIO{pin} to {value} "
+                            "(verified on attempt {attempt + 1})"
                         )
                     else:
                         self.logger.info(f"🔧 CORRECTED: Set GPIO{pin} to {value} (verified)")
                     return True
                 if actual_value is None:
                     self.logger.warning(
-                        f"⚠️  Set GPIO{pin} to {value} but could not verify (read failed) - attempt {attempt + 1}"
+                        f"⚠️  Set GPIO{pin} to {value} but could not verify (read failed) - "
+                        f"attempt {attempt + 1}"
                     )
                     if attempt < max_retries - 1:
                         time.sleep(0.05)  # Wait a bit longer before retry
                         continue
                     return False  # Treat read failure as set failure for safety
                 self.logger.warning(
-                    f"⚠️  Set GPIO{pin} to {value} but read back {actual_value} - attempt {attempt + 1}"
+                    f"⚠️  Set GPIO{pin} to {value} but read back {actual_value} - "
+                    f"attempt {attempt + 1}"
                 )
                 if attempt < max_retries - 1:
                     time.sleep(0.05)  # Wait a bit before retry
                     continue
                 self.logger.error(
-                    f"❌ Set GPIO{pin} to {value} but read back {actual_value} after {max_retries} attempts - GPIO change failed!"
+                    f"❌ Set GPIO{pin} to {value} but read back {actual_value} after {max_retries} "
+                    "attempts - GPIO change failed!"
                 )
-                return False
 
             except subprocess.CalledProcessError as e:
                 self.logger.warning(
@@ -156,15 +162,17 @@ class GPIOSafeguard:
                 if attempt < max_retries - 1:
                     time.sleep(0.05)  # Wait before retry
                     continue
-                self.logger.error(
+                self.logger.exception(
                     f"❌ Failed to set GPIO{pin} to {value} after {max_retries} attempts"
                 )
+
+            else:
                 return False
 
         return False
 
     def initialize_gpios(self):
-        """Initialize all monitored GPIOs to safe state (1)"""
+        """Initialize all monitored GPIOs to safe state (1)."""
         self.logger.info("🔄 Initializing GPIOs to safe state...")
 
         for pin in MONITORED_PINS:
@@ -188,7 +196,7 @@ class GPIOSafeguard:
             self.gpio_timers[pin] = None
 
     def check_safety_violations(self):
-        """Check for safety rule violations and take corrective action"""
+        """Check for safety rule violations and take corrective action."""
         current_time = datetime.now()
         violations_detected = False
 
@@ -244,7 +252,8 @@ class GPIOSafeguard:
                         )
                     else:
                         self.logger.error(
-                            f"❌ CRITICAL: Failed to correct GPIO{pin}! Verification failed - manual intervention may be required!"
+                            f"❌ CRITICAL: Failed to correct GPIO{pin}! Verification failed "
+                            "- manual intervention may be required!"
                         )
                         # Continue monitoring even if correction failed - maybe it will recover
                         # But don't reset the timer so we keep trying on subsequent checks
@@ -252,7 +261,7 @@ class GPIOSafeguard:
         return violations_detected
 
     def get_status_summary(self) -> str:
-        """Get current status summary"""
+        """Get current status summary."""
         status_parts = []
         for pin in MONITORED_PINS:
             state = self.gpio_states.get(pin, "UNKNOWN")
@@ -265,7 +274,7 @@ class GPIOSafeguard:
         return " | ".join(status_parts)
 
     def run_safeguard(self, status_interval=30):
-        """Run the GPIO safeguard system"""
+        """Run the GPIO safeguard system."""
         mode_str = "DRY-RUN MODE" if self.dry_run else "ACTIVE MODE"
         self.logger.info(f"🚀 STARTING GPIO SAFEGUARD SYSTEM - {mode_str}")
         self.logger.info(f"📋 Monitoring pins: {MONITORED_PINS}")
@@ -288,14 +297,15 @@ class GPIOSafeguard:
         try:
             while True:
                 # Check for violations and take corrective action
-                violations = self.check_safety_violations()
+                self.check_safety_violations()
 
                 # Periodic status report
                 current_time = datetime.now()
                 if (current_time - last_status_time).total_seconds() >= status_interval:
                     status = self.get_status_summary()
                     self.logger.info(
-                        f"📊 Status: {status} | Violations: {self.violations_count} | Corrections: {self.corrections_made}"
+                        f"📊 Status: {status} | Violations: {self.violations_count} | "
+                        f"Corrections: {self.corrections_made}"
                     )
                     last_status_time = current_time
 
@@ -345,8 +355,8 @@ def main():
     # Run the safeguard system
     try:
         safeguard.run_safeguard(status_interval=args.status_interval)
-    except Exception as e:
-        safeguard.logger.error(f"❌ Safeguard system failed: {e}")
+    except Exception:
+        safeguard.logger.exception("❌ Safeguard system failed")
         sys.exit(1)
 
 
